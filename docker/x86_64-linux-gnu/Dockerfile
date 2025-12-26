@@ -9,4 +9,7 @@ ENV LANG=C.UTF-8
 WORKDIR /app
 COPY . .
 
+RUN pixi run build
+RUN cmake --install build --prefix cloud-compare
+
 CMD ["sleep", "infinity"]
