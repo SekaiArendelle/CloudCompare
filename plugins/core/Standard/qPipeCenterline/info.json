@@ -1,0 +1,9 @@
+{
+	"type": "Standard",
+	"name": "Pipe Centerline Extraction",
+	"icon": ":/CC/plugin/qPipeCenterline/images/qPipeCenterline.png",
+	"description": "Extract and render centerlines from pipe point clouds with curves and branches.",
+	"authors": [],
+	"maintainers": [],
+	"references": []
+}

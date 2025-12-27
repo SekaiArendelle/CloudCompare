@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/CC/plugin/qPipeCenterline">
+        <file>images/qPipeCenterline.png</file>
+        <file>info.json</file>
+    </qresource>
+</RCC>

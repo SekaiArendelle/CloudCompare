@@ -16,6 +16,7 @@ add_subdirectory( qPipeSurfaceRecon )
 add_subdirectory( qRANSAC_SD )
 add_subdirectory( qSRA )
 add_subdirectory( qMeshBoolean )
+add_subdirectory( qPipeCenterline )
 
 #plugins integrated as submodules
 set( submod_plugins
