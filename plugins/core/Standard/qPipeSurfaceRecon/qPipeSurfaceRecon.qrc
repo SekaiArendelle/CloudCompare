@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/CC/plugin/qPipeSurfaceRecon">
+    <file>images/qPipeSurfaceRecon.svg</file>
+    <file>info.json</file>
+</qresource>
+</RCC>
