@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/CC/plugin/qCrossSectionFeatures">
+    <file>images/qCrossSectionFeatures.png</file>
+    <file>info.json</file>
+</qresource>
+</RCC>

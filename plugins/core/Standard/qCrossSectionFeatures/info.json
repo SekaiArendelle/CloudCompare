@@ -1,0 +1,9 @@
+{
+	"type": "Standard",
+	"name": "Cross Section Features",
+	"icon": ":/CC/plugin/qCrossSectionFeatures/images/qCrossSectionFeatures.png",
+	"description": "Extract feature point coordinates from point cloud cross sections.",
+	"authors": [],
+	"maintainers": [],
+	"references": []
+}

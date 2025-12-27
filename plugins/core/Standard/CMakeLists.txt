@@ -17,6 +17,7 @@ add_subdirectory( qRANSAC_SD )
 add_subdirectory( qSRA )
 add_subdirectory( qMeshBoolean )
 add_subdirectory( qPipeCenterline )
+add_subdirectory( qCrossSectionFeatures )
 
 #plugins integrated as submodules
 set( submod_plugins
