@@ -86,9 +86,6 @@ class PipeCenterlineExtractor
 	//! Convert CloudCompare point cloud to Open3D point cloud
 	std::shared_ptr<open3d::geometry::PointCloud> ccToOpen3D(ccPointCloud* cloud);
 
-	//! Convert Open3D point cloud to CloudCompare point cloud
-	ccPointCloud* open3DToCC(const std::shared_ptr<open3d::geometry::PointCloud>& o3dCloud, const QString& name);
-
 	//! Preprocess point cloud using Open3D
 	std::shared_ptr<open3d::geometry::PointCloud> preprocessOpen3D(const std::shared_ptr<open3d::geometry::PointCloud>& cloud);
 
@@ -117,16 +114,7 @@ class PipeCenterlineExtractor
 	// Fallback implementation (kept for compatibility but will not be used)
 
 	// Original fallback methods
-	bool                  preprocess(ccPointCloud* cloud, ccPointCloud*& processedCloud);
-	bool                  estimateNormals(ccPointCloud* cloud);
-	bool                  extractPipePoints(ccPointCloud* cloud, std::vector<int>& pipePointIndices);
-	bool                  detectBranches(const std::vector<std::vector<CCVector3>>& skeletonPaths,
-	                                     std::vector<std::vector<CCVector3>>&       branchedPaths);
-	bool                  smoothPaths(std::vector<std::vector<CCVector3>>& paths);
-	bool                  createPolylines(const std::vector<std::vector<CCVector3>>& paths,
-	                                      std::vector<ccPolyline*>&                  polylines);
 	double                computeCurvature(ccPointCloud* cloud, unsigned pointIndex);
-	bool                  isPipePoint(ccPointCloud* cloud, unsigned pointIndex);
 	std::vector<unsigned> findNeighbors(ccPointCloud* cloud, unsigned pointIndex, double radius);
 
 	//! Parameters
