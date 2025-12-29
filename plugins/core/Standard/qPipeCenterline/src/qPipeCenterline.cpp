@@ -119,19 +119,20 @@ void qPipeCenterline::extractCenterline()
 	try
 	{
 		// Set up parameters
-		PipeCenterlineExtractor::Parameters params;
-		params.radiusEstimate          = m_dialog->getRadiusEstimate();
-		params.voxelSize               = m_dialog->getVoxelSize();
-		params.minPointsPerSegment     = m_dialog->getMinPointsPerSegment();
-		params.curvatureThreshold      = m_dialog->getCurvatureThreshold();
-		params.distanceThreshold       = m_dialog->getDistanceThreshold();
-		params.useBranchDetection      = m_dialog->isBranchDetectionEnabled();
-		params.branchAngleThreshold    = m_dialog->getBranchAngleThreshold();
-		params.useRANSAC               = m_dialog->isRANSACEnabled();
-		params.ransacDistanceThreshold = m_dialog->getRANSACDistanceThreshold();
-		params.ransacMaxIterations     = m_dialog->getRANSACMaxIterations();
-		params.useMLSR                 = m_dialog->isMLSREnabled();
-		params.mlsrSearchRadius        = m_dialog->getMLSRSearchRadius();
+		PipeCenterlineExtractor::Parameters params{
+			.radiusEstimate          = m_dialog->getRadiusEstimate(),
+			.voxelSize               = m_dialog->getVoxelSize(),
+			.minPointsPerSegment     = m_dialog->getMinPointsPerSegment(),
+			.curvatureThreshold      = m_dialog->getCurvatureThreshold(),
+			.distanceThreshold       = m_dialog->getDistanceThreshold(),
+			.useBranchDetection      = m_dialog->isBranchDetectionEnabled(),
+			.branchAngleThreshold    = m_dialog->getBranchAngleThreshold(),
+			.useRANSAC               = m_dialog->isRANSACEnabled(),
+			.ransacDistanceThreshold = m_dialog->getRANSACDistanceThreshold(),
+			.ransacMaxIterations     = m_dialog->getRANSACMaxIterations(),
+			.useMLSR                 = m_dialog->isMLSREnabled(),
+			.mlsrSearchRadius        = m_dialog->getMLSRSearchRadius(),
+		};
 
 		// Create extractor
 		PipeCenterlineExtractor extractor(params);

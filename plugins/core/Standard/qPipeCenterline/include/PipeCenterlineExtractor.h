@@ -38,21 +38,21 @@ class PipeCenterlineExtractor
 		double mlsrSearchRadius;        //!< MLSR search radius
 
 		//! Default constructor with default values
-		Parameters()
-		    : radiusEstimate(0.1)
-		    , voxelSize(0.02)
-		    , minPointsPerSegment(50)
-		    , curvatureThreshold(0.1)
-		    , distanceThreshold(0.05)
-		    , useBranchDetection(true)
-		    , branchAngleThreshold(30.0)
-		    , useRANSAC(true)
-		    , ransacDistanceThreshold(0.01)
-		    , ransacMaxIterations(1000)
-		    , useMLSR(true)
-		    , mlsrSearchRadius(0.05)
-		{
-		}
+		// Parameters()
+		//     : radiusEstimate(0.1)
+		//     , voxelSize(0.02)
+		//     , minPointsPerSegment(50)
+		//     , curvatureThreshold(0.1)
+		//     , distanceThreshold(0.05)
+		//     , useBranchDetection(true)
+		//     , branchAngleThreshold(30.0)
+		//     , useRANSAC(true)
+		//     , ransacDistanceThreshold(0.01)
+		//     , ransacMaxIterations(1000)
+		//     , useMLSR(true)
+		//     , mlsrSearchRadius(0.05)
+		// {
+		// }
 	};
 
 	//! Constructor
