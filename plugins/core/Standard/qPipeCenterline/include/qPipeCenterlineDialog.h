@@ -14,6 +14,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QVBoxLayout>
 
 //! Dialog for pipe centerline extraction parameters
 class qPipeCenterlineDialog : public QDialog
@@ -155,5 +156,5 @@ class qPipeCenterlineDialog : public QDialog
 	QGroupBox* m_open3dGroupBox;
 
 	// Main layout
-	QGridLayout* m_mainLayout;
+	QVBoxLayout* m_mainLayout;
 };
