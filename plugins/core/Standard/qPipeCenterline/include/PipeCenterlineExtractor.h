@@ -111,12 +111,6 @@ class PipeCenterlineExtractor
 	//! Convert CCVector3 to Eigen vector
 	Eigen::Vector3d ccToEigen(const CCVector3& ccVec);
 
-	// Fallback implementation (kept for compatibility but will not be used)
-
-	// Original fallback methods
-	double                computeCurvature(ccPointCloud* cloud, unsigned pointIndex);
-	std::vector<unsigned> findNeighbors(ccPointCloud* cloud, unsigned pointIndex, double radius);
-
 	//! Parameters
 	Parameters m_params;
 
