@@ -4,14 +4,14 @@
 #include "../include/qPipeCenterlineDialog.h"
 
 // Qt
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
 #include <QCheckBox>
-#include <QSpinBox>
 #include <QDoubleSpinBox>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QPushButton>
+#include <QSpinBox>
+#include <QVBoxLayout>
 
 // Open3D-specific getter implementations
 bool qPipeCenterlineDialog::isRANSACEnabled() const
@@ -39,7 +39,7 @@ double qPipeCenterlineDialog::getMLSRSearchRadius() const
 	return m_mlsrRadiusSpinBox ? m_mlsrRadiusSpinBox->value() : 0.05;
 }
 
-void qPipeCenterlineDialog::setRANSACEnabled( bool enabled )
+void qPipeCenterlineDialog::setRANSACEnabled(bool enabled)
 {
 	if (m_ransacCheckBox)
 	{
@@ -47,7 +47,7 @@ void qPipeCenterlineDialog::setRANSACEnabled( bool enabled )
 	}
 }
 
-void qPipeCenterlineDialog::setRANSACDistanceThreshold( double threshold )
+void qPipeCenterlineDialog::setRANSACDistanceThreshold(double threshold)
 {
 	if (m_ransacDistanceSpinBox)
 	{
@@ -55,7 +55,7 @@ void qPipeCenterlineDialog::setRANSACDistanceThreshold( double threshold )
 	}
 }
 
-void qPipeCenterlineDialog::setRANSACMaxIterations( int iterations )
+void qPipeCenterlineDialog::setRANSACMaxIterations(int iterations)
 {
 	if (m_ransacIterationsSpinBox)
 	{
@@ -63,7 +63,7 @@ void qPipeCenterlineDialog::setRANSACMaxIterations( int iterations )
 	}
 }
 
-void qPipeCenterlineDialog::setMLSREnabled( bool enabled )
+void qPipeCenterlineDialog::setMLSREnabled(bool enabled)
 {
 	if (m_mlsrCheckBox)
 	{
@@ -71,7 +71,7 @@ void qPipeCenterlineDialog::setMLSREnabled( bool enabled )
 	}
 }
 
-void qPipeCenterlineDialog::setMLSRSearchRadius( double radius )
+void qPipeCenterlineDialog::setMLSRSearchRadius(double radius)
 {
 	if (m_mlsrRadiusSpinBox)
 	{

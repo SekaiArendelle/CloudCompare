@@ -36,64 +36,71 @@ class ccHObject;
 class qPipeCenterlineDialog;
 
 //! Pipe centerline extraction plugin
-class qPipeCenterline : public QObject, public ccStdPluginInterface
+class qPipeCenterline : public QObject
+    , public ccStdPluginInterface
 {
 	Q_OBJECT
-	Q_INTERFACES( ccPluginInterface ccStdPluginInterface )
-	Q_PLUGIN_METADATA( IID "cccorp.cloudcompare.plugin.qPipeCenterline" FILE "../info.json" )
+	Q_INTERFACES(ccPluginInterface ccStdPluginInterface)
+	Q_PLUGIN_METADATA(IID "cccorp.cloudcompare.plugin.qPipeCenterline" FILE "../info.json")
 
-public:
+  public:
 	//! Default constructor
-	explicit qPipeCenterline( QObject* parent = nullptr );
-	
+	explicit qPipeCenterline(QObject* parent = nullptr);
+
 	//! Destructor
 	~qPipeCenterline() override = default;
 
 	// Inherited from ccPluginInterface
-	QString getName() const override { return "Pipe Centerline Extraction"; }
-	QString getDescription() const override { return "Extract and render centerlines from pipe point clouds"; }
+	QString getName() const override
+	{
+		return "Pipe Centerline Extraction";
+	}
+	QString getDescription() const override
+	{
+		return "Extract and render centerlines from pipe point clouds";
+	}
 	QIcon getIcon() const override;
-	
+
 	// Inherited from ccStdPluginInterface
-	void onNewSelection( const ccHObject::Container& selectedEntities ) override;
-	QList<QAction *> getActions() override;
-	
-protected:
+	void            onNewSelection(const ccHObject::Container& selectedEntities) override;
+	QList<QAction*> getActions() override;
+
+  protected:
 	//! Slot called when the action is triggered
 	void doAction();
-	
+
 	//! Slot to handle the extraction process
 	void extractCenterline();
-	
-private:
+
+  private:
 	//! Initialize the plugin
-	
+
 	//! Preprocess point cloud (filtering and denoising)
-	bool preprocessPointCloud( ccPointCloud* cloud, ccPointCloud*& processedCloud );
-	
+	bool preprocessPointCloud(ccPointCloud* cloud, ccPointCloud*& processedCloud);
+
 	//! Extract pipe centerline using skeletonization
-	bool extractPipeCenterline( ccPointCloud* cloud, std::vector<ccPolyline*>& centerlines );
-	
+	bool extractPipeCenterline(ccPointCloud* cloud, std::vector<ccPolyline*>& centerlines);
+
 	//! Handle pipe branches and bifurcations
-	bool handleBranches( const std::vector<ccPolyline*>& centerlines, 
-						 std::vector<ccPolyline*>& finalCenterlines );
-	
+	bool handleBranches(const std::vector<ccPolyline*>& centerlines,
+	                    std::vector<ccPolyline*>&       finalCenterlines);
+
 	//! Render centerlines
-	void renderCenterlines( const std::vector<ccPolyline*>& centerlines );
-	
+	void renderCenterlines(const std::vector<ccPolyline*>& centerlines);
+
 	//! Check if selected entity is a valid point cloud for pipe processing
-	bool isValidPipeCloud( ccHObject* entity );
-	
+	bool isValidPipeCloud(ccHObject* entity);
+
 	//! Create polyline from point sequence
-	ccPolyline* createPolyline( const std::vector<CCVector3>& points, 
-							   const QString& name );
-	
+	ccPolyline* createPolyline(const std::vector<CCVector3>& points,
+	                           const QString&                name);
+
 	// Actions
 	QAction* m_action;
-	
+
 	// UI Dialog
 	qPipeCenterlineDialog* m_dialog;
-	
+
 	// Currently selected point cloud
 	ccPointCloud* m_selectedCloud;
 };
