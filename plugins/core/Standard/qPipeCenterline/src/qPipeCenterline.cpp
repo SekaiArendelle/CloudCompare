@@ -4,6 +4,8 @@
 // #                                                                        #
 // ##########################################################################
 
+#include <GL/glew.h>
+
 #include "../include/qPipeCenterline.h"
 
 #include "../include/PipeCenterlineExtractor.h"

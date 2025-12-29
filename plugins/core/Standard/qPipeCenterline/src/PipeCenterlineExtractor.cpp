@@ -4,6 +4,8 @@
 // #                                                                        #
 // ##########################################################################
 
+#include <GL/glew.h>
+
 #include "../include/PipeCenterlineExtractor.h"
 
 // CCCoreLib
@@ -279,116 +281,6 @@ std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::computeCenter
 	}
 }
 
-for (size_t i = 0; i < cloud->points_.size(); ++i)
-{
-	if (distances[i] < threshold * m_params.radiusEstimate)
-	{
-		continue;
-	}
-
-	// Check if local maximum
-	std::vector<int>    neighbors;
-	std::vector<double> neighbor_dists;
-	kdtree.SearchRadius(cloud->points_[i], search_radius * 0.5, neighbors, neighbor_dists);
-
-	bool is_local_max = true;
-	for (size_t j = 1; j < neighbors.size(); ++j) // Skip first (itself)
-	{
-		if (distances[neighbors[j]] > distances[i])
-		{
-			is_local_max = false;
-			break;
-		}
-	}
-
-	if (is_local_max)
-	{
-		skeleton_indices.push_back(i);
-	}
-}
-
-// Connect skeleton points into continuous paths
-if (skeleton_indices.size() >= 2)
-{
-
-	return centerlines;
-}
-catch (const std::exception& e)
-{
-	m_lastError = QString("Point-based centerline computation failed: %1").arg(e.what());
-	return centerlines;
-}
-}
-
-// Build KD-tree
-open3d::geometry::KDTreeFlann kdtree(*cloud);
-
-// Track used points
-std::vector<bool> used(skeleton_indices.size(), false);
-double            connection_threshold = m_params.radiusEstimate * 1.5;
-
-for (size_t i = 0; i < skeleton_indices.size(); ++i)
-{
-	if (used[i])
-		continue;
-
-	std::vector<Eigen::Vector3d> path;
-	path.push_back(cloud->points_[skeleton_indices[i]]);
-	used[i] = true;
-
-	// Grow path in both directions
-	bool extended = true;
-	while (extended)
-	{
-		extended = false;
-
-		// Try to extend at both ends
-		for (int end = 0; end < 2; ++end)
-		{
-			Eigen::Vector3d current_point = end == 0 ? path.front() : path.back();
-
-			// Find nearest skeleton point
-			int    best_idx  = -1;
-			double best_dist = std::numeric_limits<double>::max();
-
-			for (size_t j = 0; j < skeleton_indices.size(); ++j)
-			{
-				if (used[j])
-					continue;
-
-				double dist = (cloud->points_[skeleton_indices[j]] - current_point).norm();
-				if (dist < best_dist && dist < connection_threshold)
-				{
-					best_dist = dist;
-					best_idx  = j;
-				}
-			}
-
-			if (best_idx >= 0)
-			{
-				if (end == 0)
-				{
-					path.insert(path.begin(), cloud->points_[skeleton_indices[best_idx]]);
-				}
-				else
-				{
-					path.push_back(cloud->points_[skeleton_indices[best_idx]]);
-				}
-				used[best_idx] = true;
-				extended       = true;
-			}
-		}
-	}
-
-	if (path.size() >= 2)
-	{
-		centerlines.push_back(path);
-	}
-}
-
-return centerlines;
-}
-
 // Simplified medial axis computation using distance from boundary
 // This is a basic implementation - for production, consider more sophisticated algorithms
 
@@ -402,7 +294,6 @@ std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::detectBranche
 	// For now, just return the input centerlines
 	// Branch detection can be implemented later
 	return centerlines;
-}
 }
 
 std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::smoothPathsOpen3D(const std::vector<std::vector<Eigen::Vector3d>>& paths)
@@ -1023,4 +914,3 @@ std::vector<unsigned> PipeCenterlineExtractor::findNeighbors(ccPointCloud* cloud
 
 	return neighbors;
 }
-
