@@ -1,23 +1,22 @@
 # Find Open3D library
 # This module finds the Open3D library and sets the following variables:
-# OPEN3D_FOUND - True if Open3D is found
-# OPEN3D_INCLUDE_DIRS - Include directories for Open3D
-# OPEN3D_LIBRARIES - Libraries to link against
-# OPEN3D_VERSION - Version of Open3D found
+# Open3D_FOUND - True if Open3D is found
+# Open3D_INCLUDE_DIRS - Include directories for Open3D
+# Open3D_LIBRARIES - Libraries to link against
+# Open3D_VERSION - Version of Open3D found
 
-find_package(PkgConfig QUIET)
-
-# Try to find Open3D using pkg-config first
-if(PKG_CONFIG_FOUND)
-    pkg_check_modules(PC_OPEN3D QUIET open3d)
+# For pixi/conda environments, Open3D is typically available through the environment
+if(DEFINED ENV{CONDA_PREFIX})
+    set(Open3D_ROOT_PATH $ENV{CONDA_PREFIX})
+elseif(DEFINED ENV{PIXI_ENVIRONMENT_DIR})
+    set(Open3D_ROOT_PATH $ENV{PIXI_ENVIRONMENT_DIR})
 endif()
 
 # Find include directories
-find_path(OPEN3D_INCLUDE_DIR
+find_path(Open3D_INCLUDE_DIR
     NAMES open3d/Open3D.h
     HINTS
-        ${PC_OPEN3D_INCLUDEDIR}
-        ${PC_OPEN3D_INCLUDE_DIRS}
+        ${Open3D_ROOT_PATH}/include
         $ENV{OPEN3D_ROOT}/include
         ${OPEN3D_ROOT}/include
     PATHS
@@ -25,16 +24,13 @@ find_path(OPEN3D_INCLUDE_DIR
         /usr/local/include
         /opt/local/include
         /opt/homebrew/include
-        $ENV{CONDA_PREFIX}/include
-        ${CONDA_PREFIX}/include
 )
 
 # Find library
-find_library(OPEN3D_LIBRARY
+find_library(Open3D_LIBRARY
     NAMES Open3D
     HINTS
-        ${PC_OPEN3D_LIBDIR}
-        ${PC_OPEN3D_LIBRARY_DIRS}
+        ${Open3D_ROOT_PATH}/lib
         $ENV{OPEN3D_ROOT}/lib
         ${OPEN3D_ROOT}/lib
     PATHS
@@ -42,42 +38,38 @@ find_library(OPEN3D_LIBRARY
         /usr/local/lib
         /opt/local/lib
         /opt/homebrew/lib
-        $ENV{CONDA_PREFIX}/lib
-        ${CONDA_PREFIX}/lib
 )
 
 # Extract version information if possible
-if(PC_OPEN3D_VERSION)
-    set(OPEN3D_VERSION ${PC_OPEN3D_VERSION})
-elseif(OPEN3D_INCLUDE_DIR AND EXISTS "${OPEN3D_INCLUDE_DIR}/open3d/version.txt")
-    file(STRINGS "${OPEN3D_INCLUDE_DIR}/open3d/version.txt" OPEN3D_VERSION LIMIT_COUNT 1)
+if(Open3D_INCLUDE_DIR AND EXISTS "${Open3D_INCLUDE_DIR}/open3d/version.txt")
+    file(STRINGS "${Open3D_INCLUDE_DIR}/open3d/version.txt" Open3D_VERSION LIMIT_COUNT 1)
 endif()
 
 # Handle the QUIETLY and REQUIRED arguments
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Open3D
-    REQUIRED_VARS OPEN3D_LIBRARY OPEN3D_INCLUDE_DIR
-    VERSION_VAR OPEN3D_VERSION
+    REQUIRED_VARS Open3D_LIBRARY Open3D_INCLUDE_DIR
+    VERSION_VAR Open3D_VERSION
 )
 
-if(OPEN3D_FOUND)
-    set(OPEN3D_LIBRARIES ${OPEN3D_LIBRARY})
-    set(OPEN3D_INCLUDE_DIRS ${OPEN3D_INCLUDE_DIR})
+if(Open3D_FOUND)
+    set(Open3D_LIBRARIES ${Open3D_LIBRARY})
+    set(Open3D_INCLUDE_DIRS ${Open3D_INCLUDE_DIR})
     
     # Add additional dependencies if needed
     if(UNIX AND NOT APPLE)
-        list(APPEND OPEN3D_LIBRARIES pthread)
+        list(APPEND Open3D_LIBRARIES pthread)
     endif()
     
     # Create imported target
     if(NOT TARGET Open3D::Open3D)
         add_library(Open3D::Open3D UNKNOWN IMPORTED)
         set_target_properties(Open3D::Open3D PROPERTIES
-            IMPORTED_LOCATION "${OPEN3D_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${OPEN3D_INCLUDE_DIR}"
+            IMPORTED_LOCATION "${Open3D_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${Open3D_INCLUDE_DIR}"
         )
     endif()
 endif()
 
 # Mark variables as advanced
-mark_as_advanced(OPEN3D_INCLUDE_DIR OPEN3D_LIBRARY)
+mark_as_advanced(Open3D_INCLUDE_DIR Open3D_LIBRARY)

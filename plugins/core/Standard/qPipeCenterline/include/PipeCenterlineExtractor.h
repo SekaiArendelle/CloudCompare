@@ -11,10 +11,8 @@
 #include <ccPolyline.h>
 
 // Conditionally include Open3D
-#ifdef OPEN3D_AVAILABLE
+#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
 #include <open3d/Open3D.h>
-#else
-#warning "Open3D not available"
 #endif
 
 // System
@@ -35,7 +33,7 @@ public:
 		double distanceThreshold;  //!< Distance threshold for point clustering
 		bool useBranchDetection;   //!< Enable branch detection
 		double branchAngleThreshold; //!< Branch angle threshold in degrees
-#ifdef OPEN3D_AVAILABLE
+#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
 		bool useRANSAC;           //!< Use RANSAC for cylinder fitting
 		double ransacDistanceThreshold; //!< RANSAC distance threshold
 		int ransacMaxIterations;   //!< RANSAC maximum iterations
@@ -52,7 +50,7 @@ public:
 			, distanceThreshold(0.05)
 			, useBranchDetection(true)
 			, branchAngleThreshold(30.0)
-#ifdef OPEN3D_AVAILABLE
+#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
 			, useRANSAC(true)
 			, ransacDistanceThreshold(0.01)
 			, ransacMaxIterations(1000)
@@ -111,18 +109,6 @@ private:
 	
 	//! Convert CCVector3 to Eigen vector
 	Eigen::Vector3d ccToEigen(const CCVector3& ccVec);
-	
-	//! Compute centerline from points using Open3D
-	std::vector<std::vector<Eigen::Vector3d>> computeCenterlineFromPoints(const std::shared_ptr<open3d::geometry::PointCloud>& cloud);
-	
-	//! Connect skeleton points into continuous paths
-	std::vector<std::vector<Eigen::Vector3d>> connectSkeletonPoints(
-		const std::shared_ptr<open3d::geometry::PointCloud>& cloud,
-		const std::vector<size_t>& skeleton_indices,
-		const std::vector<double>& distances);
-	
-	//! Compute medial axis from triangle mesh
-	std::vector<std::vector<Eigen::Vector3d>> computeMedialAxis(const std::shared_ptr<open3d::geometry::TriangleMesh>& mesh);
 	
 	//! Get line direction at specific index
 	Eigen::Vector3d getLineDirection(const std::vector<Eigen::Vector3d>& line, size_t index);
