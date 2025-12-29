@@ -8,7 +8,7 @@ IncludeBlocks: Regroup
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PointerAlignment: Left
-SortIncludes: true
+SortIncludes: false
 SpaceBeforeParens: ControlStatements
 StatementMacros: ['Q_OBJECT']
 UseTab: ForIndentation
