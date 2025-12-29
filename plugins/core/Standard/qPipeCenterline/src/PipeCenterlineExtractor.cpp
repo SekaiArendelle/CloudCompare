@@ -9,7 +9,6 @@
 #include "../include/PipeCenterlineExtractor.h"
 
 // CCCoreLib
-#include <ccHObjectCaster.h>
 #include <ccPointCloud.h>
 #include <ccPolyline.h>
 
