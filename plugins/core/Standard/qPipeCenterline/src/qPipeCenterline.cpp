@@ -157,21 +157,6 @@ void qPipeCenterline::extractCenterline()
 	}
 }
 
-bool qPipeCenterline::preprocessPointCloud(ccPointCloud* cloud, ccPointCloud*& processedCloud)
-{
-	if (!cloud)
-	{
-		return false;
-	}
-
-	// For now, just create a copy
-	// TODO: Implement actual preprocessing (filtering, denoising, etc.)
-	processedCloud  = new ccPointCloud(cloud->getName() + "_processed");
-	*processedCloud = *cloud;
-
-	return true;
-}
-
 bool qPipeCenterline::isValidPipeCloud(ccHObject* entity)
 {
 	if (!entity)
@@ -198,28 +183,6 @@ bool qPipeCenterline::isValidPipeCloud(ccHObject* entity)
 	}
 
 	return true;
-}
-
-ccPolyline* qPipeCenterline::createPolyline(const std::vector<CCVector3>& points,
-                                            const QString&                name)
-{
-	if (points.empty())
-	{
-		return nullptr;
-	}
-
-	ccPointCloud* vertices = new ccPointCloud("vertices");
-	for (const auto& point : points)
-	{
-		vertices->addPoint(point);
-	}
-
-	ccPolyline* polyline = new ccPolyline(vertices);
-	polyline->setName(name);
-	polyline->addPointIndex(0, static_cast<unsigned>(points.size()));
-	polyline->setClosed(false);
-
-	return polyline;
 }
 
 void qPipeCenterline::renderCenterlines(const std::vector<ccPolyline*>& centerlines)

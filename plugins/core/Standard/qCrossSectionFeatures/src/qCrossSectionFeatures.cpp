@@ -128,27 +128,6 @@ bool qCrossSectionFeatures::isValidCrossSectionCloud( ccHObject* entity )
 	return true;
 }
 
-ccPolyline* qCrossSectionFeatures::createPolyline( const std::vector<CCVector3>& points, const QString& name )
-{
-	if ( points.empty() )
-	{
-		return nullptr;
-	}
-	
-	ccPointCloud* vertices = new ccPointCloud( "vertices" );
-	for ( const auto& point : points )
-	{
-		vertices->addPoint( point );
-	}
-	
-	ccPolyline* polyline = new ccPolyline( vertices );
-	polyline->setName( name );
-	polyline->addPointIndex( 0, static_cast<unsigned>( points.size() ) );
-	polyline->setClosed( false );
-	
-	return polyline;
-}
-
 void qCrossSectionFeatures::extractFeatures()
 {
 	if ( !m_selectedCloud )

@@ -75,9 +75,6 @@ class qPipeCenterline : public QObject
   private:
 	//! Initialize the plugin
 
-	//! Preprocess point cloud (filtering and denoising)
-	bool preprocessPointCloud(ccPointCloud* cloud, ccPointCloud*& processedCloud);
-
 	//! Extract pipe centerline using skeletonization
 	bool extractPipeCenterline(ccPointCloud* cloud, std::vector<ccPolyline*>& centerlines);
 
@@ -90,10 +87,6 @@ class qPipeCenterline : public QObject
 
 	//! Check if selected entity is a valid point cloud for pipe processing
 	bool isValidPipeCloud(ccHObject* entity);
-
-	//! Create polyline from point sequence
-	ccPolyline* createPolyline(const std::vector<CCVector3>& points,
-	                           const QString&                name);
 
 	// Actions
 	QAction* m_action;

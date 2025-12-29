@@ -58,9 +58,6 @@ private:
 	//! Check if selected entity is a valid point cloud for processing
 	bool isValidCrossSectionCloud( ccHObject* entity );
 	
-	//! Create polyline from point sequence
-	ccPolyline* createPolyline( const std::vector<CCVector3>& points, const QString& name );
-	
 	// Actions
 	QAction* m_action;
 	
