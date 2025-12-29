@@ -10,10 +10,8 @@
 #include <ccPointCloud.h>
 #include <ccPolyline.h>
 
-// Conditionally include Open3D
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
+// Open3D - required for this plugin
 #include <open3d/Open3D.h>
-#endif
 
 // System
 #include <memory>
@@ -26,20 +24,18 @@ class PipeCenterlineExtractor
 	//! Parameters for centerline extraction
 	struct Parameters
 	{
-		double radiusEstimate;       //!< Estimated pipe radius
-		double voxelSize;            //!< Voxel size for downsampling
-		int    minPointsPerSegment;  //!< Minimum points per segment
-		double curvatureThreshold;   //!< Curvature threshold for pipe detection
-		double distanceThreshold;    //!< Distance threshold for point clustering
-		bool   useBranchDetection;   //!< Enable branch detection
-		double branchAngleThreshold; //!< Branch angle threshold in degrees
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
+		double radiusEstimate;          //!< Estimated pipe radius
+		double voxelSize;               //!< Voxel size for downsampling
+		int    minPointsPerSegment;     //!< Minimum points per segment
+		double curvatureThreshold;      //!< Curvature threshold for pipe detection
+		double distanceThreshold;       //!< Distance threshold for point clustering
+		bool   useBranchDetection;      //!< Enable branch detection
+		double branchAngleThreshold;    //!< Branch angle threshold in degrees
 		bool   useRANSAC;               //!< Use RANSAC for cylinder fitting
 		double ransacDistanceThreshold; //!< RANSAC distance threshold
 		int    ransacMaxIterations;     //!< RANSAC maximum iterations
 		bool   useMLSR;                 //!< Use Moving Least Squares smoothing
 		double mlsrSearchRadius;        //!< MLSR search radius
-#endif
 
 		//! Default constructor with default values
 		Parameters()
@@ -50,13 +46,11 @@ class PipeCenterlineExtractor
 		    , distanceThreshold(0.05)
 		    , useBranchDetection(true)
 		    , branchAngleThreshold(30.0)
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
 		    , useRANSAC(true)
 		    , ransacDistanceThreshold(0.01)
 		    , ransacMaxIterations(1000)
 		    , useMLSR(true)
 		    , mlsrSearchRadius(0.05)
-#endif
 		{
 		}
 	};
@@ -120,12 +114,7 @@ class PipeCenterlineExtractor
 	//! Convert CCVector3 to Eigen vector
 	Eigen::Vector3d ccToEigen(const CCVector3& ccVec);
 
-	//! Get line direction at specific index
-	Eigen::Vector3d getLineDirection(const std::vector<Eigen::Vector3d>& line, size_t index);
-#endif
-
-	// Fallback implementation for when Open3D is not available
-	bool extractFallback(ccPointCloud* cloud, std::vector<ccPolyline*>& centerlines);
+	// Fallback implementation (kept for compatibility but will not be used)
 
 	// Original fallback methods
 	bool                  preprocess(ccPointCloud* cloud, ccPointCloud*& processedCloud);

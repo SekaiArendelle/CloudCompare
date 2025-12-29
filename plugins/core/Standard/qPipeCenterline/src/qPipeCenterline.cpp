@@ -118,20 +118,18 @@ void qPipeCenterline::extractCenterline()
 	{
 		// Set up parameters
 		PipeCenterlineExtractor::Parameters params;
-		params.radiusEstimate       = m_dialog->getRadiusEstimate();
-		params.voxelSize            = m_dialog->getVoxelSize();
-		params.minPointsPerSegment  = m_dialog->getMinPointsPerSegment();
-		params.curvatureThreshold   = m_dialog->getCurvatureThreshold();
-		params.distanceThreshold    = m_dialog->getDistanceThreshold();
-		params.useBranchDetection   = m_dialog->isBranchDetectionEnabled();
-		params.branchAngleThreshold = m_dialog->getBranchAngleThreshold();
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
+		params.radiusEstimate          = m_dialog->getRadiusEstimate();
+		params.voxelSize               = m_dialog->getVoxelSize();
+		params.minPointsPerSegment     = m_dialog->getMinPointsPerSegment();
+		params.curvatureThreshold      = m_dialog->getCurvatureThreshold();
+		params.distanceThreshold       = m_dialog->getDistanceThreshold();
+		params.useBranchDetection      = m_dialog->isBranchDetectionEnabled();
+		params.branchAngleThreshold    = m_dialog->getBranchAngleThreshold();
 		params.useRANSAC               = m_dialog->isRANSACEnabled();
 		params.ransacDistanceThreshold = m_dialog->getRANSACDistanceThreshold();
 		params.ransacMaxIterations     = m_dialog->getRANSACMaxIterations();
 		params.useMLSR                 = m_dialog->isMLSREnabled();
 		params.mlsrSearchRadius        = m_dialog->getMLSRSearchRadius();
-#endif
 
 		// Create extractor
 		PipeCenterlineExtractor extractor(params);

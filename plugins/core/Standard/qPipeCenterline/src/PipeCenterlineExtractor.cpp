@@ -11,10 +11,8 @@
 #include <ccPointCloud.h>
 #include <ccPolyline.h>
 
-// Conditionally include Open3D
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
+// Open3D - required for this plugin
 #include <open3d/Open3D.h>
-#endif
 
 // System
 #include <algorithm>
@@ -43,7 +41,6 @@ bool PipeCenterlineExtractor::extract(ccPointCloud* cloud, std::vector<ccPolylin
 
 	try
 	{
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
 		// Use Open3D implementation
 		// Step 1: Convert CloudCompare point cloud to Open3D
 		auto o3dCloud = ccToOpen3D(cloud);
@@ -97,118 +94,12 @@ bool PipeCenterlineExtractor::extract(ccPointCloud* cloud, std::vector<ccPolylin
 			m_lastError = "Failed to create polylines";
 			return false;
 		}
-#else
-		// Fallback implementation - use original algorithm
-		return extractFallback(cloud, centerlines);
-#endif
 
 		return true;
 	}
 	catch (const std::exception& e)
 	{
 		m_lastError = QString("Exception: %1").arg(e.what());
-		return false;
-	}
-}
-
-// Fallback implementation when Open3D is not available
-bool PipeCenterlineExtractor::extractFallback(ccPointCloud* cloud, std::vector<ccPolyline*>& centerlines)
-{
-	ccPointCloud* processedCloud = nullptr;
-
-	try
-	{
-		// Step 1: Preprocess point cloud
-		if (!preprocess(cloud, processedCloud))
-		{
-			if (processedCloud)
-			{
-				delete processedCloud;
-			}
-			return false;
-		}
-
-		// Step 2: Estimate normals
-		if (!estimateNormals(processedCloud))
-		{
-			delete processedCloud;
-			return false;
-		}
-
-		// Step 3: Extract pipe points
-		std::vector<int> pipePointIndices;
-		if (!extractPipePoints(processedCloud, pipePointIndices))
-		{
-			delete processedCloud;
-			return false;
-		}
-
-		if (pipePointIndices.empty())
-		{
-			m_lastError = "No pipe points detected";
-			delete processedCloud;
-			return false;
-		}
-
-		// Create subset cloud with pipe points only
-		ccPointCloud* pipeCloud = new ccPointCloud("pipe_points");
-		for (int index : pipePointIndices)
-		{
-			pipeCloud->addPoint(*processedCloud->getPoint(index));
-		}
-
-		// Step 4: Compute skeleton
-		std::vector<std::vector<CCVector3>> skeletonPaths;
-		if (!computeSkeleton(pipeCloud, skeletonPaths))
-		{
-			delete processedCloud;
-			delete pipeCloud;
-			return false;
-		}
-
-		// Step 5: Handle branches if enabled
-		std::vector<std::vector<CCVector3>> finalPaths;
-		if (m_params.useBranchDetection)
-		{
-			if (!detectBranches(skeletonPaths, finalPaths))
-			{
-				finalPaths = skeletonPaths;
-			}
-		}
-		else
-		{
-			finalPaths = skeletonPaths;
-		}
-
-		// Step 6: Smooth paths
-		if (!smoothPaths(finalPaths))
-		{
-			delete processedCloud;
-			delete pipeCloud;
-			return false;
-		}
-
-		// Step 7: Create polylines
-		if (!createPolylines(finalPaths, centerlines))
-		{
-			delete processedCloud;
-			delete pipeCloud;
-			return false;
-		}
-
-		// Cleanup
-		delete processedCloud;
-		delete pipeCloud;
-
-		return true;
-	}
-	catch (const std::exception& e)
-	{
-		m_lastError = QString("Exception: %1").arg(e.what());
-		if (processedCloud)
-		{
-			delete processedCloud;
-		}
 		return false;
 	}
 }
@@ -658,7 +549,6 @@ Eigen::Vector3d PipeCenterlineExtractor::ccToEigen(const CCVector3& ccVec)
 	return Eigen::Vector3d(ccVec.x, ccVec.y, ccVec.z);
 }
 
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
 // Open3D-specific implementations
 
 bool PipeCenterlineExtractor::preprocess(ccPointCloud* cloud, ccPointCloud*& processedCloud)
@@ -1219,7 +1109,6 @@ std::vector<unsigned> PipeCenterlineExtractor::findNeighbors(ccPointCloud* cloud
 	return neighbors;
 }
 
-#ifdef USE_OPEN3D_WITH_PIPECENTERLINE
 // Open3D-specific implementations
 
 std::shared_ptr<open3d::geometry::PointCloud> PipeCenterlineExtractor::ccToOpen3D(ccPointCloud* cloud)
@@ -1467,5 +1356,3 @@ Eigen::Vector3d PipeCenterlineExtractor::ccToEigen(const CCVector3& ccVec)
 {
 	return Eigen::Vector3d(ccVec.x, ccVec.y, ccVec.z);
 }
-
-#endif // USE_OPEN3D_WITH_PIPECENTERLINE
