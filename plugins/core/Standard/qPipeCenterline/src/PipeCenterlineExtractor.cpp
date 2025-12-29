@@ -21,6 +21,7 @@
 #include <queue>
 #include <unordered_map>
 
+// TODO move construct
 PipeCenterlineExtractor::PipeCenterlineExtractor(const Parameters& params)
     : m_params(params)
 {
