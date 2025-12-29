@@ -4,14 +4,6 @@
 // #                                                                        #
 // ##########################################################################
 
-// GL headers must come before anything else to avoid glew conflicts
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-// GLEW must come before other GL headers
-#include <GL/glew.h>
-
 #include "../include/qPipeCenterline.h"
 
 #include "../include/PipeCenterlineExtractor.h"

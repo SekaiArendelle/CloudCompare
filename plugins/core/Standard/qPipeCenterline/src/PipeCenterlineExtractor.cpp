@@ -4,14 +4,6 @@
 // #                                                                        #
 // ##########################################################################
 
-// GL headers must come before anything else to avoid glew conflicts
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-// GLEW must come before other GL headers
-#include <GL/glew.h>
-
 #include "../include/PipeCenterlineExtractor.h"
 
 // CCCoreLib
@@ -168,7 +160,7 @@ ccPointCloud* PipeCenterlineExtractor::open3DToCC(const std::shared_ptr<open3d::
 			ccColor::Rgb           c(static_cast<ColorCompType>(color.x() * 255),
                            static_cast<ColorCompType>(color.y() * 255),
                            static_cast<ColorCompType>(color.z() * 255));
-			ccCloud->addRGBColor(c);
+			ccCloud->addColor(c);
 		}
 	}
 
@@ -287,76 +279,45 @@ std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::computeCenter
 	}
 }
 
-try
+for (size_t i = 0; i < cloud->points_.size(); ++i)
 {
-	// Build KD-tree for efficient neighbor search
-	open3d::geometry::KDTreeFlann kdtree(*cloud);
-
-	// Compute distance transform (approximate medial axis)
-	std::vector<double> distances(cloud->points_.size(), 0.0);
-	double              search_radius = m_params.radiusEstimate * 2.0;
-
-	for (size_t i = 0; i < cloud->points_.size(); ++i)
+	if (distances[i] < threshold * m_params.radiusEstimate)
 	{
-		std::vector<int>    indices;
-		std::vector<double> dists;
-		kdtree.SearchRadius(cloud->points_[i], search_radius, indices, dists);
+		continue;
+	}
 
-		if (!indices.empty())
+	// Check if local maximum
+	std::vector<int>    neighbors;
+	std::vector<double> neighbor_dists;
+	kdtree.SearchRadius(cloud->points_[i], search_radius * 0.5, neighbors, neighbor_dists);
+
+	bool is_local_max = true;
+	for (size_t j = 1; j < neighbors.size(); ++j) // Skip first (itself)
+	{
+		if (distances[neighbors[j]] > distances[i])
 		{
-			// Use average distance as approximate distance transform
-			double avg_dist = 0.0;
-			for (double d : dists)
-			{
-				avg_dist += std::sqrt(d);
-			}
-			distances[i] = avg_dist / dists.size();
+			is_local_max = false;
+			break;
 		}
 	}
 
-	// Extract local maxima (skeleton points)
-	std::vector<size_t> skeleton_indices;
-	double              threshold = 0.6; // Relative threshold for skeleton detection
-
-	for (size_t i = 0; i < cloud->points_.size(); ++i)
+	if (is_local_max)
 	{
-		if (distances[i] < threshold * m_params.radiusEstimate)
-		{
-			continue;
-		}
-
-		// Check if local maximum
-		std::vector<int>    neighbors;
-		std::vector<double> neighbor_dists;
-		kdtree.SearchRadius(cloud->points_[i], search_radius * 0.5, neighbors, neighbor_dists);
-
-		bool is_local_max = true;
-		for (size_t j = 1; j < neighbors.size(); ++j) // Skip first (itself)
-		{
-			if (distances[neighbors[j]] > distances[i])
-			{
-				is_local_max = false;
-				break;
-			}
-		}
-
-		if (is_local_max)
-		{
-			skeleton_indices.push_back(i);
-		}
+		skeleton_indices.push_back(i);
 	}
+}
 
-	// Connect skeleton points into continuous paths
-	if (skeleton_indices.size() >= 2)
-	{
+// Connect skeleton points into continuous paths
+if (skeleton_indices.size() >= 2)
+{
 
-		return centerlines;
-	}
-	catch (const std::exception& e)
-	{
-		m_lastError = QString("Point-based centerline computation failed: %1").arg(e.what());
-		return centerlines;
-	}
+	return centerlines;
+}
+catch (const std::exception& e)
+{
+	m_lastError = QString("Point-based centerline computation failed: %1").arg(e.what());
+	return centerlines;
+}
 }
 
 // Build KD-tree
@@ -431,43 +392,6 @@ return centerlines;
 // Simplified medial axis computation using distance from boundary
 // This is a basic implementation - for production, consider more sophisticated algorithms
 
-try
-{
-	// Compute vertex normals if not available
-	auto mesh_with_normals = std::make_shared<open3d::geometry::TriangleMesh>(*mesh);
-	if (!mesh_with_normals->HasVertexNormals())
-	{
-		mesh_with_normals->ComputeVertexNormals();
-	}
-
-	// Identify potential medial axis points based on distance from boundary
-	// and local geometric properties
-	std::vector<size_t> medial_points;
-
-	for (size_t i = 0; i < mesh_with_normals->vertices_.size(); ++i)
-	{
-		const Eigen::Vector3d& vertex = mesh_with_normals->vertices_[i];
-		const Eigen::Vector3d& normal = mesh_with_normals->vertex_normals_[i];
-
-		// Simple heuristic: points with high distance to boundary
-		// and consistent normal directions are potential medial axis points
-
-		// This is a simplified approach - in practice, you'd want more
-		// sophisticated medial axis transform algorithms
-
-		// For now, return empty and fall back to point-based approach
-		break;
-	}
-
-	return medial_axis;
-}
-catch (const std::exception& e)
-{
-	m_lastError = QString("Medial axis computation failed: %1").arg(e.what());
-	return medial_axis;
-}
-}
-
 std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::detectBranchesOpen3D(const std::vector<std::vector<Eigen::Vector3d>>& centerlines)
 {
 	if (!m_params.useBranchDetection || centerlines.empty())
@@ -478,23 +402,6 @@ std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::detectBranche
 	// For now, just return the input centerlines
 	// Branch detection can be implemented later
 	return centerlines;
-}
-
-// Calculate direction vector at given index
-if (index == 0)
-{
-	return (line[1] - line[0]).normalized();
-}
-else if (index == line.size() - 1)
-{
-	return (line[index] - line[index - 1]).normalized();
-}
-else
-{
-	// Average of forward and backward directions
-	Eigen::Vector3d forward  = (line[index + 1] - line[index]).normalized();
-	Eigen::Vector3d backward = (line[index] - line[index - 1]).normalized();
-	return ((forward + backward) / 2.0).normalized();
 }
 }
 
@@ -1117,250 +1024,3 @@ std::vector<unsigned> PipeCenterlineExtractor::findNeighbors(ccPointCloud* cloud
 	return neighbors;
 }
 
-// Open3D-specific implementations
-
-std::shared_ptr<open3d::geometry::PointCloud> PipeCenterlineExtractor::ccToOpen3D(ccPointCloud* cloud)
-{
-	if (!cloud)
-	{
-		return nullptr;
-	}
-
-	auto o3dCloud = std::make_shared<open3d::geometry::PointCloud>();
-
-	// Convert points
-	o3dCloud->points_.reserve(cloud->size());
-	for (unsigned i = 0; i < cloud->size(); ++i)
-	{
-		const CCVector3* p = cloud->getPoint(i);
-		o3dCloud->points_.push_back(ccToEigen(*p));
-	}
-
-	// Convert colors if available
-	if (cloud->hasColors())
-	{
-		o3dCloud->colors_.reserve(cloud->size());
-		for (unsigned i = 0; i < cloud->size(); ++i)
-		{
-			const ccColor::Rgb& color = cloud->getPointColor(i);
-			o3dCloud->colors_.push_back(Eigen::Vector3d(color.r / 255.0, color.g / 255.0, color.b / 255.0));
-		}
-	}
-
-	return o3dCloud;
-}
-
-ccPointCloud* PipeCenterlineExtractor::open3DToCC(const std::shared_ptr<open3d::geometry::PointCloud>& o3dCloud, const QString& name)
-{
-	if (!o3dCloud || o3dCloud->points_.empty())
-	{
-		return nullptr;
-	}
-
-	ccPointCloud* ccCloud = new ccPointCloud(name);
-
-	// Convert points
-	for (const auto& point : o3dCloud->points_)
-	{
-		ccCloud->addPoint(eigenToCC(point));
-	}
-
-	// Convert colors if available
-	if (!o3dCloud->colors_.empty() && o3dCloud->colors_.size() == o3dCloud->points_.size())
-	{
-		ccCloud->resizeTheRGBTable(false);
-		for (unsigned i = 0; i < o3dCloud->colors_.size(); ++i)
-		{
-			const Eigen::Vector3d& color = o3dCloud->colors_[i];
-			ccColor::Rgb           c(static_cast<ColorCompType>(color.x() * 255),
-                           static_cast<ColorCompType>(color.y() * 255),
-                           static_cast<ColorCompType>(color.z() * 255));
-			ccCloud->addRGBColor(c);
-		}
-	}
-
-	return ccCloud;
-}
-
-std::shared_ptr<open3d::geometry::PointCloud> PipeCenterlineExtractor::preprocessOpen3D(const std::shared_ptr<open3d::geometry::PointCloud>& cloud)
-{
-	if (!cloud || cloud->points_.empty())
-	{
-		return nullptr;
-	}
-
-	auto processedCloud = std::make_shared<open3d::geometry::PointCloud>(*cloud);
-
-	try
-	{
-		// Voxel downsampling
-		if (m_params.voxelSize > 0.0)
-		{
-			processedCloud = processedCloud->VoxelDownSample(m_params.voxelSize);
-		}
-
-		// Estimate normals if not already available
-		if (!processedCloud->HasNormals())
-		{
-			processedCloud->EstimateNormals(open3d::geometry::KDTreeSearchParamHybrid(
-			    m_params.radiusEstimate * 2.0, 30));
-		}
-
-		return processedCloud;
-	}
-	catch (const std::exception& e)
-	{
-		m_lastError = QString("Open3D preprocessing failed: %1").arg(e.what());
-		return cloud;
-	}
-}
-
-std::shared_ptr<open3d::geometry::PointCloud> PipeCenterlineExtractor::extractPipePointsOpen3D(const std::shared_ptr<open3d::geometry::PointCloud>& cloud)
-{
-	if (!cloud || cloud->points_.empty())
-	{
-		return nullptr;
-	}
-
-	try
-	{
-		// Simple geometric filtering based on curvature
-		// For now, just return the input cloud
-		// In a real implementation, you would use RANSAC or other methods
-		return cloud;
-	}
-	catch (const std::exception& e)
-	{
-		m_lastError = QString("Open3D pipe point extraction failed: %1").arg(e.what());
-		return nullptr;
-	}
-}
-
-std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::computeCenterlineOpen3D(const std::shared_ptr<open3d::geometry::PointCloud>& cloud)
-{
-	std::vector<std::vector<Eigen::Vector3d>> centerlines;
-
-	if (!cloud || cloud->points_.empty())
-	{
-		return centerlines;
-	}
-
-	try
-	{
-		// Simple centerline extraction using point cloud skeletonization
-		// This is a basic implementation - for production, consider more sophisticated algorithms
-
-		// For now, create a simple line through the centroid of the point cloud
-		Eigen::Vector3d centroid(0, 0, 0);
-		for (const auto& point : cloud->points_)
-		{
-			centroid += point;
-		}
-		centroid /= cloud->points_.size();
-
-		// Create a simple centerline (just one line segment through the centroid)
-		std::vector<Eigen::Vector3d> centerline;
-
-		// Find the bounding box
-		Eigen::Vector3d min_pt = cloud->points_[0];
-		Eigen::Vector3d max_pt = cloud->points_[0];
-		for (const auto& point : cloud->points_)
-		{
-			min_pt = min_pt.cwiseMin(point);
-			max_pt = max_pt.cwiseMax(point);
-		}
-
-		// Create centerline along the longest axis
-		Eigen::Vector3d extent = max_pt - min_pt;
-		int             longest_axis;
-		extent.maxCoeff(&longest_axis);
-
-		Eigen::Vector3d start = centroid;
-		Eigen::Vector3d end   = centroid;
-		start[longest_axis]   = min_pt[longest_axis];
-		end[longest_axis]     = max_pt[longest_axis];
-
-		centerline.push_back(start);
-		centerline.push_back(end);
-
-		centerlines.push_back(centerline);
-
-		return centerlines;
-	}
-	catch (const std::exception& e)
-	{
-		m_lastError = QString("Open3D centerline computation failed: %1").arg(e.what());
-		return centerlines;
-	}
-}
-
-std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::detectBranchesOpen3D(const std::vector<std::vector<Eigen::Vector3d>>& centerlines)
-{
-	if (!m_params.useBranchDetection || centerlines.empty())
-	{
-		return centerlines;
-	}
-
-	// For now, just return the input centerlines
-	// Branch detection can be implemented later
-	return centerlines;
-}
-
-std::vector<std::vector<Eigen::Vector3d>> PipeCenterlineExtractor::smoothPathsOpen3D(const std::vector<std::vector<Eigen::Vector3d>>& paths)
-{
-	// For now, just return the input paths without smoothing
-	// Smoothing can be implemented later if needed
-	return paths;
-}
-
-bool PipeCenterlineExtractor::createPolylinesFromPaths(const std::vector<std::vector<Eigen::Vector3d>>& paths,
-                                                       std::vector<ccPolyline*>&                        polylines)
-{
-	try
-	{
-		polylines.clear();
-
-		for (size_t i = 0; i < paths.size(); ++i)
-		{
-			const auto& path = paths[i];
-			if (path.size() < 2)
-			{
-				continue;
-			}
-
-			// Create point cloud for polyline vertices
-			ccPointCloud* vertices = new ccPointCloud(QString("vertices_%1").arg(i));
-			for (const auto& point : path)
-			{
-				vertices->addPoint(eigenToCC(point));
-			}
-
-			// Create polyline
-			ccPolyline* polyline = new ccPolyline(vertices);
-			polyline->setName(QString("centerline_%1").arg(i));
-			polyline->addPointIndex(0, static_cast<unsigned>(path.size()));
-			polyline->setClosed(false);
-
-			polylines.push_back(polyline);
-		}
-
-		return !polylines.empty();
-	}
-	catch (const std::exception& e)
-	{
-		m_lastError = QString("Polyline creation failed: %1").arg(e.what());
-		return false;
-	}
-}
-
-CCVector3 PipeCenterlineExtractor::eigenToCC(const Eigen::Vector3d& eigenVec)
-{
-	return CCVector3(static_cast<PointCoordinateType>(eigenVec.x()),
-	                 static_cast<PointCoordinateType>(eigenVec.y()),
-	                 static_cast<PointCoordinateType>(eigenVec.z()));
-}
-
-Eigen::Vector3d PipeCenterlineExtractor::ccToEigen(const CCVector3& ccVec)
-{
-	return Eigen::Vector3d(ccVec.x, ccVec.y, ccVec.z);
-}
