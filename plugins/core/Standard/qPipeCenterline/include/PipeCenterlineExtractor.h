@@ -120,7 +120,6 @@ class PipeCenterlineExtractor
 	bool                  preprocess(ccPointCloud* cloud, ccPointCloud*& processedCloud);
 	bool                  estimateNormals(ccPointCloud* cloud);
 	bool                  extractPipePoints(ccPointCloud* cloud, std::vector<int>& pipePointIndices);
-	bool                  computeSkeleton(ccPointCloud* cloud, std::vector<std::vector<CCVector3>>& skeletonPaths);
 	bool                  detectBranches(const std::vector<std::vector<CCVector3>>& skeletonPaths,
 	                                     std::vector<std::vector<CCVector3>>&       branchedPaths);
 	bool                  smoothPaths(std::vector<std::vector<CCVector3>>& paths);
