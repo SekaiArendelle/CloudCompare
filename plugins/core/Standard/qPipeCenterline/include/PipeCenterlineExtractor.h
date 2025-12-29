@@ -9,13 +9,19 @@
 // CCCoreLib
 #include <ccPointCloud.h>
 #include <ccPolyline.h>
-#include <Neighbourhood.h>
+
+// Conditionally include Open3D
+#ifdef OPEN3D_AVAILABLE
+#include <open3d/Open3D.h>
+#else
+#warning "Open3D not available"
+#endif
 
 // System
 #include <vector>
 #include <memory>
 
-//! Pipe centerline extraction algorithm
+//! Pipe centerline extraction algorithm using Open3D
 class PipeCenterlineExtractor
 {
 public:
@@ -29,6 +35,13 @@ public:
 		double distanceThreshold;  //!< Distance threshold for point clustering
 		bool useBranchDetection;   //!< Enable branch detection
 		double branchAngleThreshold; //!< Branch angle threshold in degrees
+#ifdef OPEN3D_AVAILABLE
+		bool useRANSAC;           //!< Use RANSAC for cylinder fitting
+		double ransacDistanceThreshold; //!< RANSAC distance threshold
+		int ransacMaxIterations;   //!< RANSAC maximum iterations
+		bool useMLSR;             //!< Use Moving Least Squares smoothing
+		double mlsrSearchRadius;   //!< MLSR search radius
+#endif
 		
 		//! Default constructor with default values
 		Parameters()
@@ -39,6 +52,13 @@ public:
 			, distanceThreshold(0.05)
 			, useBranchDetection(true)
 			, branchAngleThreshold(30.0)
+#ifdef OPEN3D_AVAILABLE
+			, useRANSAC(true)
+			, ransacDistanceThreshold(0.01)
+			, ransacMaxIterations(1000)
+			, useMLSR(true)
+			, mlsrSearchRadius(0.05)
+#endif
 		{}
 	};
 
@@ -61,37 +81,69 @@ public:
 	const Parameters& getParameters() const { return m_params; }
 
 private:
-	//! Preprocess point cloud
-	bool preprocess( ccPointCloud* cloud, ccPointCloud*& processedCloud );
+	//! Convert CloudCompare point cloud to Open3D point cloud
+	std::shared_ptr<open3d::geometry::PointCloud> ccToOpen3D(ccPointCloud* cloud);
 	
-	//! Estimate normals
-	bool estimateNormals( ccPointCloud* cloud );
+	//! Convert Open3D point cloud to CloudCompare point cloud
+	ccPointCloud* open3DToCC(const std::shared_ptr<open3d::geometry::PointCloud>& o3dCloud, const QString& name);
 	
-	//! Extract pipe points based on geometric features
-	bool extractPipePoints( ccPointCloud* cloud, std::vector<int>& pipePointIndices );
+	//! Preprocess point cloud using Open3D
+	std::shared_ptr<open3d::geometry::PointCloud> preprocessOpen3D(const std::shared_ptr<open3d::geometry::PointCloud>& cloud);
 	
-	//! Compute skeleton using thinning algorithm
-	bool computeSkeleton( ccPointCloud* cloud, std::vector<std::vector<CCVector3>>& skeletonPaths );
+	//! Extract pipe points using Open3D geometry features
+	std::shared_ptr<open3d::geometry::PointCloud> extractPipePointsOpen3D(const std::shared_ptr<open3d::geometry::PointCloud>& cloud);
 	
-	//! Detect and handle branches
-	bool detectBranches( const std::vector<std::vector<CCVector3>>& skeletonPaths,
-						 std::vector<std::vector<CCVector3>>& branchedPaths );
+	//! Compute centerline using Open3D skeletonization
+	std::vector<std::vector<Eigen::Vector3d>> computeCenterlineOpen3D(const std::shared_ptr<open3d::geometry::PointCloud>& cloud);
 	
-	//! Smooth skeleton paths
-	bool smoothPaths( std::vector<std::vector<CCVector3>>& paths );
+	//! Detect and handle branches using Open3D
+	std::vector<std::vector<Eigen::Vector3d>> detectBranchesOpen3D(const std::vector<std::vector<Eigen::Vector3d>>& centerlines);
 	
-	//! Create polylines from paths
-	bool createPolylines( const std::vector<std::vector<CCVector3>>& paths,
-						  std::vector<ccPolyline*>& polylines );
+	//! Smooth centerline paths
+	std::vector<std::vector<Eigen::Vector3d>> smoothPathsOpen3D(const std::vector<std::vector<Eigen::Vector3d>>& paths);
 	
-	//! Compute local curvature
-	double computeCurvature( ccPointCloud* cloud, unsigned pointIndex );
+	//! Create CloudCompare polylines from Open3D paths
+	bool createPolylinesFromPaths(const std::vector<std::vector<Eigen::Vector3d>>& paths,
+								  std::vector<ccPolyline*>& polylines);
 	
-	//! Check if point is on pipe surface
-	bool isPipePoint( ccPointCloud* cloud, unsigned pointIndex );
+	//! Convert Eigen vector to CCVector3
+	CCVector3 eigenToCC(const Eigen::Vector3d& eigenVec);
 	
-	//! Find neighboring points
-	std::vector<unsigned> findNeighbors( ccPointCloud* cloud, unsigned pointIndex, double radius );
+	//! Convert CCVector3 to Eigen vector
+	Eigen::Vector3d ccToEigen(const CCVector3& ccVec);
+	
+	//! Compute centerline from points using Open3D
+	std::vector<std::vector<Eigen::Vector3d>> computeCenterlineFromPoints(const std::shared_ptr<open3d::geometry::PointCloud>& cloud);
+	
+	//! Connect skeleton points into continuous paths
+	std::vector<std::vector<Eigen::Vector3d>> connectSkeletonPoints(
+		const std::shared_ptr<open3d::geometry::PointCloud>& cloud,
+		const std::vector<size_t>& skeleton_indices,
+		const std::vector<double>& distances);
+	
+	//! Compute medial axis from triangle mesh
+	std::vector<std::vector<Eigen::Vector3d>> computeMedialAxis(const std::shared_ptr<open3d::geometry::TriangleMesh>& mesh);
+	
+	//! Get line direction at specific index
+	Eigen::Vector3d getLineDirection(const std::vector<Eigen::Vector3d>& line, size_t index);
+#endif
+	
+	// Fallback implementation for when Open3D is not available
+	bool extractFallback(ccPointCloud* cloud, std::vector<ccPolyline*>& centerlines);
+	
+	// Original fallback methods
+	bool preprocess(ccPointCloud* cloud, ccPointCloud*& processedCloud);
+	bool estimateNormals(ccPointCloud* cloud);
+	bool extractPipePoints(ccPointCloud* cloud, std::vector<int>& pipePointIndices);
+	bool computeSkeleton(ccPointCloud* cloud, std::vector<std::vector<CCVector3>>& skeletonPaths);
+	bool detectBranches(const std::vector<std::vector<CCVector3>>& skeletonPaths,
+						 std::vector<std::vector<CCVector3>>& branchedPaths);
+	bool smoothPaths(std::vector<std::vector<CCVector3>>& paths);
+	bool createPolylines(const std::vector<std::vector<CCVector3>>& paths,
+						  std::vector<ccPolyline*>& polylines);
+	double computeCurvature(ccPointCloud* cloud, unsigned pointIndex);
+	bool isPipePoint(ccPointCloud* cloud, unsigned pointIndex);
+	std::vector<unsigned> findNeighbors(ccPointCloud* cloud, unsigned pointIndex, double radius);
 	
 	//! Parameters
 	Parameters m_params;
@@ -99,7 +151,7 @@ private:
 	//! Last error message
 	QString m_lastError;
 	
-	//! Processing data
+	// Processing data for fallback implementation
 	std::vector<CCVector3> m_normals;
 	std::vector<bool> m_isPipePoint;
 };

@@ -68,6 +68,36 @@ public:
 	
 	//! Set branch angle threshold
 	void setBranchAngleThreshold( double angle );
+	
+	//! Get RANSAC enabled
+	bool isRANSACEnabled() const;
+	
+	//! Get RANSAC distance threshold
+	double getRANSACDistanceThreshold() const;
+	
+	//! Get RANSAC max iterations
+	int getRANSACMaxIterations() const;
+	
+	//! Get MLSR enabled
+	bool isMLSREnabled() const;
+	
+	//! Get MLSR search radius
+	double getMLSRSearchRadius() const;
+	
+	//! Set RANSAC enabled
+	void setRANSACEnabled( bool enabled );
+	
+	//! Set RANSAC distance threshold
+	void setRANSACDistanceThreshold( double threshold );
+	
+	//! Set RANSAC max iterations
+	void setRANSACMaxIterations( int iterations );
+	
+	//! Set MLSR enabled
+	void setMLSREnabled( bool enabled );
+	
+	//! Set MLSR search radius
+	void setMLSRSearchRadius( double radius );
 
 private:
 	//! Handle OK button click
@@ -81,6 +111,12 @@ private:
 	
 	//! Update UI state based on checkboxes
 	void updateUI();
+	
+	//! Handle RANSAC checkbox change
+	void onRANSACChanged();
+	
+	//! Handle MLSR checkbox change
+	void onMLSRChanged();
 
 private:
 	//! Create UI elements
@@ -101,6 +137,13 @@ private:
 	QCheckBox* m_branchDetectionCheckBox;
 	QDoubleSpinBox* m_branchAngleSpinBox;
 	
+	// Open3D specific controls
+	QCheckBox* m_ransacCheckBox;
+	QDoubleSpinBox* m_ransacDistanceSpinBox;
+	QSpinBox* m_ransacIterationsSpinBox;
+	QCheckBox* m_mlsrCheckBox;
+	QDoubleSpinBox* m_mlsrRadiusSpinBox;
+	
 	QPushButton* m_okButton;
 	QPushButton* m_cancelButton;
 	QPushButton* m_defaultsButton;
@@ -109,6 +152,7 @@ private:
 	QGroupBox* m_basicGroupBox;
 	QGroupBox* m_advancedGroupBox;
 	QGroupBox* m_branchGroupBox;
+	QGroupBox* m_open3dGroupBox;
 	
 	// Main layout
 	QGridLayout* m_mainLayout;

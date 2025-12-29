@@ -125,6 +125,11 @@ void qPipeCenterline::extractCenterline()
 		params.distanceThreshold = m_dialog->getDistanceThreshold();
 		params.useBranchDetection = m_dialog->isBranchDetectionEnabled();
 		params.branchAngleThreshold = m_dialog->getBranchAngleThreshold();
+		params.useRANSAC = m_dialog->isRANSACEnabled();
+		params.ransacDistanceThreshold = m_dialog->getRANSACDistanceThreshold();
+		params.ransacMaxIterations = m_dialog->getRANSACMaxIterations();
+		params.useMLSR = m_dialog->isMLSREnabled();
+		params.mlsrSearchRadius = m_dialog->getMLSRSearchRadius();
 		
 		// Create extractor
 		PipeCenterlineExtractor extractor( params );
