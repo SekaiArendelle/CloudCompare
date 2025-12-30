@@ -1,7 +1,5 @@
 target_sources( ${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/qPipeCenterline.h
-	${CMAKE_CURRENT_LIST_DIR}/qPipeCenterlineDialog.h
-	${CMAKE_CURRENT_LIST_DIR}/PipeCenterlineExtractor.h
 )
 
 target_include_directories( ${PROJECT_NAME}
