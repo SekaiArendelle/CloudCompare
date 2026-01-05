@@ -1,0 +1,9 @@
+1. git checkout -b YOUR_BRANCH
+
+2. you did some edit
+
+3. git add .
+
+4. git commit
+
+5. git push origin YOUR_BRANCH
