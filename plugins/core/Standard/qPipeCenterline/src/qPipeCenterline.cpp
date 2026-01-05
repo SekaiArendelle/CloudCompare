@@ -14,7 +14,18 @@
 #include <QString>
 
 // qCC
+#include "ccHObjectCaster.h"
 #include "ccMainAppInterface.h"
+#include "ccPointCloud.h"
+#include "ccPolyline.h"
+#include "ccLog.h"
+#include "ccColorTypes.h"
+#include "ccBBox.h"
+
+// PCL & algorithm
+#include "../include/centerline_extractor.h"
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 qPipeCenterline::qPipeCenterline(QObject* parent)
     : QObject(parent)
@@ -41,7 +52,7 @@ void qPipeCenterline::onNewSelection(const ccHObject::Container& selectedEntitie
 		return;
 	}
 
-	// 保持插件入口可用，即便没有具体处理逻辑
+	// Keep plugin entry enabled even without specific processing logic
 	m_action->setEnabled(!selectedEntities.empty());
 }
 
@@ -52,8 +63,97 @@ QList<QAction*> qPipeCenterline::getActions()
 
 void qPipeCenterline::doAction()
 {
-	// 功能已移除，仅保留插件加载框架
-	QMessageBox::information(m_app ? m_app->getMainWindow() : nullptr,
-	                         "qPipeCenterline",
-	                         "to be implemented");
+	if (!m_app)
+	{
+		return;
+	}
+
+	const ccHObject::Container& selectedEntities = m_app->getSelectedEntities();
+	if (selectedEntities.empty())
+	{
+		ccLog::Warning("Please select a point cloud object");
+		return;
+	}
+
+	ccPointCloud* ccCloud = ccHObjectCaster::ToPointCloud(selectedEntities.front());
+	if (!ccCloud)
+	{
+		ccLog::Warning("Only point cloud entities are supported");
+		return;
+	}
+
+	if (ccCloud->size() < 10)
+	{
+		ccLog::Warning("Not enough points to extract a centerline");
+		return;
+	}
+
+	// Estimate a suitable slice resolution: 0.5% of the bounding-box diagonal length
+	ccBBox bbox = ccCloud->getOwnBB();
+	double diag = bbox.isValid() ? bbox.getDiagNormd() : 0.0;
+	float sliceResolution = static_cast<float>(diag * 0.005);
+	if (sliceResolution <= 0.f)
+	{
+		sliceResolution = 0.1f;
+	}
+
+	pcl::PointCloud<pcl::PointXYZ>::Ptr pclCloud(new pcl::PointCloud<pcl::PointXYZ>());
+	pclCloud->resize(ccCloud->size());
+
+	for (unsigned i = 0; i < ccCloud->size(); ++i)
+	{
+		const CCVector3* P = ccCloud->getPoint(i);
+		pclCloud->at(i).x = static_cast<float>(P->x);
+		pclCloud->at(i).y = static_cast<float>(P->y);
+		pclCloud->at(i).z = static_cast<float>(P->z);
+	}
+
+	CenterlineExtractor extractor;
+	extractor.setPointCloud(pclCloud);
+	extractor.extract(sliceResolution);
+
+	const std::vector<Eigen::Vector3f>& centerline = extractor.getCenterlinePoints();
+	if (centerline.size() < 2)
+	{
+		ccLog::Warning("Not enough centerline points; extraction failed");
+		return;
+	}
+
+	ccPointCloud* vertices = new ccPointCloud("CenterlineVertices");
+	if (!vertices->reserve(static_cast<unsigned>(centerline.size())))
+	{
+		ccLog::Error("Not enough memory to create the centerline");
+		delete vertices;
+		return;
+	}
+
+	for (const auto& p : centerline)
+	{
+		vertices->addPoint(CCVector3(p.x(), p.y(), p.z()));
+	}
+	vertices->setEnabled(false);
+
+	ccPolyline* polyline = new ccPolyline(vertices);
+	if (!polyline->reserve(vertices->size()))
+	{
+		ccLog::Error("Not enough memory to create the centerline polyline");
+		delete polyline;
+		delete vertices;
+		return;
+	}
+
+	polyline->addPointIndex(0, vertices->size());
+	polyline->setClosed(false);
+	polyline->setName(ccCloud->getName() + " - Centerline");
+	polyline->setColor(ccColor::red);
+	polyline->showColors(true);
+	polyline->setWidth(2);
+	polyline->addChild(vertices);
+	polyline->copyGlobalShiftAndScale(*ccCloud);
+	polyline->setDisplay_recursive(ccCloud->getDisplay());
+
+	m_app->addToDB(polyline);
+	m_app->redrawAll();
+
+	ccLog::Print(QStringLiteral("Centerline extraction completed with %1 nodes; slice resolution about %2").arg(centerline.size()).arg(sliceResolution));
 }
