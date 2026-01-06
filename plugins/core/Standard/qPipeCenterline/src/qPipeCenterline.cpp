@@ -112,48 +112,69 @@ void qPipeCenterline::doAction()
 	extractor.setPointCloud(pclCloud);
 	extractor.extract(sliceResolution);
 
-	const std::vector<Eigen::Vector3f>& centerline = extractor.getCenterlinePoints();
-	if (centerline.size() < 2)
+    const auto& tracks = extractor.getCenterlineTracks();
+    if (tracks.empty())
 	{
 		ccLog::Warning("Not enough centerline points; extraction failed");
 		return;
 	}
 
-	ccPointCloud* vertices = new ccPointCloud("CenterlineVertices");
-	if (!vertices->reserve(static_cast<unsigned>(centerline.size())))
-	{
-		ccLog::Error("Not enough memory to create the centerline");
-		delete vertices;
-		return;
-	}
+    ccHObject* group = new ccHObject(ccCloud->getName() + " - Centerlines");
+    unsigned created = 0;
+    for (std::size_t ti = 0; ti < tracks.size(); ++ti)
+    {
+        const auto& centerline = tracks[ti];
+        if (centerline.size() < 2)
+        {
+            continue;
+        }
 
-	for (const auto& p : centerline)
-	{
-		vertices->addPoint(CCVector3(p.x(), p.y(), p.z()));
-	}
-	vertices->setEnabled(false);
+        ccPointCloud* vertices = new ccPointCloud(QString("CenterlineVertices_%1").arg(ti + 1));
+        if (!vertices->reserve(static_cast<unsigned>(centerline.size())))
+        {
+            ccLog::Error("Not enough memory to create the centerline");
+            delete vertices;
+            continue;
+        }
 
-	ccPolyline* polyline = new ccPolyline(vertices);
-	if (!polyline->reserve(vertices->size()))
-	{
-		ccLog::Error("Not enough memory to create the centerline polyline");
-		delete polyline;
-		delete vertices;
-		return;
-	}
+        for (const auto& p : centerline)
+        {
+            vertices->addPoint(CCVector3(p.x(), p.y(), p.z()));
+        }
+        vertices->setEnabled(false);
 
-	polyline->addPointIndex(0, vertices->size());
-	polyline->setClosed(false);
-	polyline->setName(ccCloud->getName() + " - Centerline");
-	polyline->setColor(ccColor::red);
-	polyline->showColors(true);
-	polyline->setWidth(2);
-	polyline->addChild(vertices);
-	polyline->copyGlobalShiftAndScale(*ccCloud);
-	polyline->setDisplay_recursive(ccCloud->getDisplay());
+        ccPolyline* polyline = new ccPolyline(vertices);
+        if (!polyline->reserve(vertices->size()))
+        {
+            ccLog::Error("Not enough memory to create the centerline polyline");
+            delete polyline;
+            delete vertices;
+            continue;
+        }
 
-	m_app->addToDB(polyline);
-	m_app->redrawAll();
+        polyline->addPointIndex(0, vertices->size());
+        polyline->setClosed(false);
+        polyline->setName(ccCloud->getName() + QString(" - Centerline #%1").arg(ti + 1));
+        polyline->setColor(ccColor::red);
+        polyline->showColors(true);
+        polyline->setWidth(2);
+        polyline->addChild(vertices);
+        polyline->copyGlobalShiftAndScale(*ccCloud);
+        polyline->setDisplay_recursive(ccCloud->getDisplay());
 
-	ccLog::Print(QStringLiteral("Centerline extraction completed with %1 nodes; slice resolution about %2").arg(centerline.size()).arg(sliceResolution));
+        group->addChild(polyline);
+        ++created;
+    }
+
+    if (created > 0)
+    {
+        m_app->addToDB(group);
+        m_app->redrawAll();
+        ccLog::Print(QStringLiteral("Centerline extraction completed with %1 branches; slice resolution about %2").arg(created).arg(sliceResolution));
+    }
+    else
+    {
+        delete group;
+        ccLog::Warning("Centerline extraction produced no valid branches");
+    }
 }
