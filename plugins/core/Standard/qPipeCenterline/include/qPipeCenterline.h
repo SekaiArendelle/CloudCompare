@@ -27,9 +27,6 @@
 #include "ccStdPluginInterface.h"
 #include "ccHObject.h"
 
-class QAction;
-class ccHObject;
-
 //! Pipe centerline extraction plugin
 class qPipeCenterline : public QObject
     , public ccStdPluginInterface
