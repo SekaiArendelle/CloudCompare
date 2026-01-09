@@ -1,61 +1,32 @@
-//##########################################################################
-//#                                                                        #
-//#                  CLOUDCOMPARE PLUGIN: qPipeSurfaceRecon                #
-//#                                                                        #
-//#  This program is free software; you can redistribute it and/or modify  #
-//#  it under the terms of the GNU General Public License as published by  #
-//#  the Free Software Foundation; version 2 or later of the License.      #
-//#                                                                        #
-//#  This program is distributed in the hope that it will be useful,       #
-//#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-//#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-//#  GNU General Public License for more details.                          #
-//#                                                                        #
-//#                  COPYRIGHT: CloudCompare Developer                     #
-//#                                                                        #
-//##########################################################################
+#ifndef Q_PIPE_SURFACE_RECON_H
+#define Q_PIPE_SURFACE_RECON_H
 
-#ifndef Q_PIPE_SURFACE_RECON_PLUGIN_HEADER
-#define Q_PIPE_SURFACE_RECON_PLUGIN_HEADER
+#include <ccStdPluginInterface.h>
+#include <QObject>
+#include <QAction>
+#include <QList> 
 
-#include "ccStdPluginInterface.h"
-
-//! One-click surface reconstruction optimized for pipe point clouds
-/** This plugin provides automated surface reconstruction specifically designed
-    for pipe-like point clouds. It combines multiple PCL algorithms to achieve
-    better results for cylindrical and tubular structures.
-**/
 class qPipeSurfaceRecon : public QObject, public ccStdPluginInterface
 {
-	Q_OBJECT
-	Q_INTERFACES( ccPluginInterface ccStdPluginInterface )
-	
-	Q_PLUGIN_METADATA( IID "cccorp.cloudcompare.plugin.qPipeSurfaceRecon" FILE "../info.json" )
+    Q_OBJECT
+    // 【关键修改 1】 改回 ccPluginInterface，这是 CC 加载器唯一认的“通关密语”
+    Q_INTERFACES(ccPluginInterface)
+    
+    // 【关键修改 2】 确保 FILE 后面只有文件名，不需要路径（因为它们在同一目录下）
+    Q_PLUGIN_METADATA(IID "cccorp.cloudcompare.plugin.interface" FILE "info.json")
 
 public:
+    explicit qPipeSurfaceRecon(QObject* parent = nullptr);
+    ~qPipeSurfaceRecon() override = default;
 
-	//! Default constructor
-	explicit qPipeSurfaceRecon(QObject* parent = nullptr);
+    void onNewSelection(const ccHObject::Container& selectedEntities) override;
+    QList<QAction *> getActions() override;
 
-	virtual ~qPipeSurfaceRecon() = default;
+public slots:
+    void doAction();
 
-	//inherited from ccStdPluginInterface
-	virtual void onNewSelection(const ccHObject::Container& selectedEntities) override;
-	virtual QList<QAction *> getActions() override;
-
-protected:
-
-	//! Slot called when associated action is triggered
-	void doAction();
-
-	//! Perform pipe-specific surface reconstruction
-	bool performPipeReconstruction(ccPointCloud* cloud);
-
-protected:
-
-	//! Associated action
-	QAction* m_action;
-
+private:
+    QAction* m_action = nullptr;
 };
 
 #endif

@@ -1,0 +1,9 @@
+{
+  "type": "Standard",
+  "name": "Pipe Surface Reconstruction",
+  "icon": ":/CC/plugin/qPipeSurfaceRecon/images/qPipeSurfaceRecon.svg",
+  "description": "One-click surface reconstruction optimized for pipe point clouds.",
+  "authors": [],
+  "maintainers": [],
+  "references": []
+}
