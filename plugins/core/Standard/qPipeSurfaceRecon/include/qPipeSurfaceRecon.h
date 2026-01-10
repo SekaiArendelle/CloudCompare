@@ -4,16 +4,15 @@
 #include <ccStdPluginInterface.h>
 #include <QObject>
 #include <QAction>
-#include <QList> 
+#include <QList>
 
 class qPipeSurfaceRecon : public QObject, public ccStdPluginInterface
 {
     Q_OBJECT
-    // 【关键修改 1】 改回 ccPluginInterface，这是 CC 加载器唯一认的“通关密语”
     Q_INTERFACES(ccPluginInterface)
-    
+
     // 【关键修改 2】 确保 FILE 后面只有文件名，不需要路径（因为它们在同一目录下）
-    Q_PLUGIN_METADATA(IID "cccorp.cloudcompare.plugin.interface" FILE "info.json")
+    Q_PLUGIN_METADATA(IID "cccorp.cloudcompare.plugin.interface" FILE "../info.json")
 
 public:
     explicit qPipeSurfaceRecon(QObject* parent = nullptr);
