@@ -9,7 +9,7 @@
 class qPipeSurfaceRecon : public QObject, public ccStdPluginInterface
 {
     Q_OBJECT
-    Q_INTERFACES(ccPluginInterface)
+    Q_INTERFACES(ccPluginInterface ccStdPluginInterface)
 
     // 【关键修改 2】 确保 FILE 后面只有文件名，不需要路径（因为它们在同一目录下）
     Q_PLUGIN_METADATA(IID "cccorp.cloudcompare.plugin.interface" FILE "../info.json")
