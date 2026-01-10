@@ -1,69 +1,42 @@
 #pragma once
 
-// ##########################################################################
-// #                                                                        #
-// #            CLOUDCOMPARE PLUGIN: qCrossSectionFeatures                  #
-// #                                                                        #
-// ##########################################################################
-
 // Qt
 #include <QObject>
 
-// qCC
-#include "ccStdPluginInterface.h"
-
-// CCCoreLib
-#include <ccPointCloud.h>
-#include <ccPolyline.h>
-
-// System
-#include <vector>
+// CloudCompare
+#include <ccStdPluginInterface.h>
 
 class QAction;
-class ccHObject;
-
 class qCrossSectionFeaturesDialog;
 
-//! Cross section feature extraction plugin
 class qCrossSectionFeatures : public QObject, public ccStdPluginInterface
 {
-	Q_OBJECT
-	Q_INTERFACES( ccPluginInterface ccStdPluginInterface )
-	Q_PLUGIN_METADATA( IID "cccorp.cloudcompare.plugin.qCrossSectionFeatures" FILE "../info.json" )
+    Q_OBJECT
+    Q_INTERFACES( ccPluginInterface ccStdPluginInterface )
+    // 注意：这里必须和你的 info.json 以及 CMakeLists.txt 里的定义匹配
+    Q_PLUGIN_METADATA( IID "cccorp.cloudcompare.plugin.qCrossSectionFeatures" FILE "../info.json" )
 
 public:
-	//! Default constructor
-	explicit qCrossSectionFeatures( QObject* parent = nullptr );
-	
-	//! Destructor
-	~qCrossSectionFeatures() override = default;
+    explicit qCrossSectionFeatures( QObject* parent = nullptr );
+    ~qCrossSectionFeatures() override = default;
 
-	// Inherited from ccPluginInterface
-	QString getName() const override { return "Cross Section Features"; }
-	QString getDescription() const override { return "Extract feature point coordinates from point cloud cross sections"; }
-	QIcon getIcon() const override;
-	
-	// Inherited from ccStdPluginInterface
-	void onNewSelection( const ccHObject::Container& selectedEntities ) override;
-	QList<QAction *> getActions() override;
-	
-protected:
-	//! Slot called when the action is triggered
-	void doAction();
-	
-	//! Slot to handle the extraction process
-	void extractFeatures();
-	
+    // 继承自 ccPluginInterface
+    QString getName() const override { return "Cross Section Features"; }
+    QString getDescription() const override { return "Tunnel Intelligent Detection System"; }
+    QIcon getIcon() const override;
+
+    // 继承自 ccStdPluginInterface
+    void onNewSelection( const ccHObject::Container& selectedEntities ) override;
+    QList<QAction *> getActions() override;
+
+public slots:
+    // 核心执行函数
+    void doAction();
+
 private:
-	//! Check if selected entity is a valid point cloud for processing
-	bool isValidCrossSectionCloud( ccHObject* entity );
-	
-	// Actions
-	QAction* m_action;
-	
-	// UI Dialog
-	qCrossSectionFeaturesDialog* m_dialog;
-	
-	// Currently selected point cloud
-	ccPointCloud* m_selectedCloud;
+    // 菜单动作
+    QAction* m_action;
+
+    // 参数对话框 (复用，避免重复创建)
+    qCrossSectionFeaturesDialog* m_dialog;
 };
