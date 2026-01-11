@@ -1,75 +1,42 @@
 #pragma once
-
-// ##########################################################################
-// #                                                                        #
-// #            CLOUDCOMPARE PLUGIN: qCrossSectionFeatures                  #
-// #                                                                        #
-// ##########################################################################
-
-// CCCoreLib
 #include <ccPointCloud.h>
-#include <ccPolyline.h>
-#include <Neighbourhood.h>
-
-// System
+#include <QString>
 #include <vector>
-#include <memory>
 
-//! Cross section feature extraction algorithm
+// PCL Headers needed for the class members if any
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+
 class CrossSectionExtractor
 {
 public:
-	//! Parameters for feature extraction
-	struct Parameters
-	{
-		double planeResolution;      //!< Resolution for plane fitting
-		double featureThreshold;     //!< Threshold for feature detection
-		int minPointsPerFeature;     //!< Minimum points per feature
-		double searchRadius;         //!< Search radius for neighbors
-		bool useAdvancedFeatures;    //!< Enable advanced feature detection
-		
-		//! Default constructor with default values
-		Parameters()
-			: planeResolution(0.01)
-			, featureThreshold(0.1)
-			, minPointsPerFeature(10)
-			, searchRadius(0.05)
-			, useAdvancedFeatures(false)
-		{}
-	};
+    // 对应 Dialog 的参数
+    struct Parameters
+    {
+        double fittingThreshold = 0.05;
+        double denoiseLevel = 1.0;
+    };
 
-	//! Constructor
-	explicit CrossSectionExtractor( const Parameters& params = Parameters() );
-	
-	//! Destructor
-	~CrossSectionExtractor() = default;
-	
-	//! Extract features from cross section point cloud
-	bool extract( ccPointCloud* cloud, std::vector<ccPolyline*>& features );
-	
-	//! Get the last error message
-	QString getLastError() const { return m_lastError; }
-	
-	//! Set parameters
-	void setParameters( const Parameters& params ) { m_params = params; }
-	
-	//! Get parameters
-	const Parameters& getParameters() const { return m_params; }
+    explicit CrossSectionExtractor( const Parameters& params );
+    ~CrossSectionExtractor() = default;
+
+    // 统一入口：输入CC点云，执行所有智能操作
+    void processTunnel( ccPointCloud* inputCloud, ccPointCloud*& outputCloud, QString& reportText );
+
+    QString getLastError() const { return m_lastError; }
 
 private:
-	//! Extract cross section plane
-	bool extractCrossSectionPlane( ccPointCloud* cloud );
-	
-	//! Detect feature points
-	bool detectFeaturePoints( ccPointCloud* cloud, std::vector<int>& featureIndices );
-	
-	//! Create feature polylines
-	bool createFeaturePolylines( const std::vector<int>& featureIndices, 
-								 std::vector<ccPolyline*>& features );
-	
-	//! Parameters
-	Parameters m_params;
-	
-	//! Last error message
-	QString m_lastError;
+    Parameters m_params;
+    QString m_lastError;
+
+    // 内部类型定义
+    using PointT = pcl::PointXYZ;
+    using PointCloudT = pcl::PointCloud<PointT>;
+    enum TunnelType { TYPE_UNKNOWN=0, TYPE_RECTANGLE, TYPE_ARCH, TYPE_CIRCLE };
+
+    // 内部算法函数 (移植自你的 TunnelProcessor)
+    void adaptiveProcess(PointCloudT::Ptr cloud_in, PointCloudT::Ptr cloud_out);
+    void alignPerfectly(PointCloudT::Ptr cloud);
+    TunnelType detectType(PointCloudT::Ptr cloud);
+    std::string getShapeName(TunnelType type);
 };
